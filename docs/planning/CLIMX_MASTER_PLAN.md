@@ -1,4 +1,5 @@
 # CLIMX_MASTER_PLAN — the CLIMX-A rebuild, planned
+
 Tier: **T1 — Substantial** (PLAN_TIER §1: multi-step, architecture-touching; no §1.1
 qualifying risk — static site, no crash/concurrency/security/data-loss/dogma surface; the
 pipeline's failure mode is "touch nothing", and the one credential in v0 is being removed,
@@ -48,14 +49,14 @@ execution order, gates, and discipline.
 
 ## §4 Phases and gates (the S-ladder; details per stage in IMPLEMENTATION_STRATEGIES)
 
-| Stage | Scope (one line) | Exit gate (all must hold) |
-|---|---|---|
-| **S0** Scaffold + gates | Vite+React+TS-strict skeleton, tokens stub, router `/` route, `ci.yml` + `deploy.yml` (`needs: ci`), live on Pages | CI green link · site loads on the Pages URL · **measured** first bundle gz · Lighthouse baseline run |
-| **S1** Pipeline live | `fetch-smn.mjs` (schema guard) + `partition-data.mjs` (composite key) + `data-refresh.yml` (4 h off-hour cron, always-commit meta, skip-if-unchanged) | deployed `meta.json` < 4 h old · **file count == 2,463** asserted · measured partition sizes recorded (replacing estimates) |
-| **S2** Watchdog + forced-failure | `data-watchdog.yml` + pipeline forced-failure test | watchdog run link · forced-failure test green (meta byte-identical under mocked 500) |
-| **S3** Municipality view | primitives, `ForecastCard`, `AgeBanner`, `/estado/:ides/municipio/:idmun`, `404.html` shim | view renders real data for a chosen municipio · **measured** M4 view payload · client degradation test green · deep-link hard-reload works |
-| **S4** Search / browse / geo | `all-lite.json` index, `SearchCombobox` (ARIA), `StatePage`, haversine nearest | named workload end-to-end · **quality-veto spot-check: two same-`idmun` municipios in different states show distinct, correct forecasts** (checked against the SMN source) |
-| **S5** Hardening + cutover | coverage ≥80 % measured, a11y pass, bundle tuning, README, merge `rebuild`→`main` | full M1–M6 sweep with real numbers · M6 ≥90/≥90 both pages · operator go for the cutover merge |
+| Stage                            | Scope (one line)                                                                                                                                      | Exit gate (all must hold)                                                                                                                                                  |
+| -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **S0** Scaffold + gates          | Vite+React+TS-strict skeleton, tokens stub, router `/` route, `ci.yml` + `deploy.yml` (`needs: ci`), live on Pages                                    | CI green link · site loads on the Pages URL · **measured** first bundle gz · Lighthouse baseline run                                                                       |
+| **S1** Pipeline live             | `fetch-smn.mjs` (schema guard) + `partition-data.mjs` (composite key) + `data-refresh.yml` (4 h off-hour cron, always-commit meta, skip-if-unchanged) | deployed `meta.json` < 4 h old · **file count == 2,463** asserted · measured partition sizes recorded (replacing estimates)                                                |
+| **S2** Watchdog + forced-failure | `data-watchdog.yml` + pipeline forced-failure test                                                                                                    | watchdog run link · forced-failure test green (meta byte-identical under mocked 500)                                                                                       |
+| **S3** Municipality view         | primitives, `ForecastCard`, `AgeBanner`, `/estado/:ides/municipio/:idmun`, `404.html` shim                                                            | view renders real data for a chosen municipio · **measured** M4 view payload · client degradation test green · deep-link hard-reload works                                 |
+| **S4** Search / browse / geo     | `all-lite.json` index, `SearchCombobox` (ARIA), `StatePage`, haversine nearest                                                                        | named workload end-to-end · **quality-veto spot-check: two same-`idmun` municipios in different states show distinct, correct forecasts** (checked against the SMN source) |
+| **S5** Hardening + cutover       | coverage ≥80 % measured, a11y pass, bundle tuning, README, merge `rebuild`→`main`                                                                     | full M1–M6 sweep with real numbers · M6 ≥90/≥90 both pages · operator go for the cutover merge                                                                             |
 
 Estimated total 40–58 h (estimate, not measured; integration risk priced — see
 `aap/SYNTHESIS.md` A.3).

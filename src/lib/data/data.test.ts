@@ -4,8 +4,7 @@ import { ageHours, ageLabel, isStale } from './staleness';
 import { normalize, searchMunicipios } from './search';
 import type { IndexRow } from './types';
 
-const okResponse = (body: unknown) =>
-  ({ ok: true, json: () => Promise.resolve(body) }) as Response;
+const okResponse = (body: unknown) => ({ ok: true, json: () => Promise.resolve(body) }) as Response;
 
 describe('fetchWithCache (wall W3, client side)', () => {
   beforeEach(() => localStorage.clear());

@@ -65,9 +65,10 @@ this design carries both.** This was the FATAL defect the AAP's adversarial phas
 ## Axis 2 — Stack / tooling
 
 Runtime deps: **`react`, `react-dom` — nothing else.** Dev: `typescript` (strict), `vite`
-+ `@vitejs/plugin-react`, `vitest` + `@vitest/coverage-v8` + `jsdom`,
-`@testing-library/react`/`jest-dom`/`user-event`, `eslint` + `typescript-eslint` +
-`eslint-plugin-react-hooks` + `eslint-plugin-jsx-a11y`, `prettier`.
+
+- `@vitejs/plugin-react`, `vitest` + `@vitest/coverage-v8` + `jsdom`,
+  `@testing-library/react`/`jest-dom`/`user-event`, `eslint` + `typescript-eslint` +
+  `eslint-plugin-react-hooks` + `eslint-plugin-jsx-a11y`, `prettier`.
 
 Hand-rolled BY DESIGN (each is an M1 checklist item the operator is learning by
 construction): the **router** (History API + `popstate`, 3 route shapes, `useParams`/

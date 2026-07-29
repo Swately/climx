@@ -21,12 +21,7 @@ export default function AgeBanner() {
   const hours = ageHours(now, meta.data.fetchedAt);
   const stale = isStale(hours);
   return (
-    <Text
-      as="p"
-      size={200}
-      className={stale ? styles.warn : styles.ok}
-      aria-live="polite"
-    >
+    <Text as="p" size={200} className={stale ? styles.warn : styles.ok} aria-live="polite">
       Datos del SMN actualizados {ageLabel(hours)}
       {meta.fromCache ? ' (copia local)' : ''}
       {stale ? ' — pueden estar desactualizados' : ''}

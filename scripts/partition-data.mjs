@@ -6,7 +6,19 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Per-day fields kept in a forecast file (the view's actual need).
-const DAY_FIELDS = ['ndia', 'dloc', 'desciel', 'tmax', 'tmin', 'prec', 'probprec', 'velvien', 'dirvienc', 'raf', 'cc'];
+const DAY_FIELDS = [
+  'ndia',
+  'dloc',
+  'desciel',
+  'tmax',
+  'tmin',
+  'prec',
+  'probprec',
+  'velvien',
+  'dirvienc',
+  'raf',
+  'cc',
+];
 
 /**
  * Groups records by composite key. Returns { index, estados, municipios }:
@@ -20,7 +32,15 @@ export function partition(records) {
     const key = `${r.ides}/${r.idmun}`;
     let m = municipios.get(key);
     if (!m) {
-      m = { ides: r.ides, idmun: r.idmun, nmun: r.nmun, nes: r.nes, lat: r.lat, lon: r.lon, days: [] };
+      m = {
+        ides: r.ides,
+        idmun: r.idmun,
+        nmun: r.nmun,
+        nes: r.nes,
+        lat: r.lat,
+        lon: r.lon,
+        days: [],
+      };
       municipios.set(key, m);
     }
     const day = {};
@@ -50,7 +70,9 @@ export function writeOutput(outDir, parts, fetchedAt) {
   }
   // The count assertion is structural: files written must equal composite-key count.
   if (written !== municipios.size || index.length !== municipios.size) {
-    throw new Error(`count mismatch: wrote ${written}, municipios ${municipios.size}, index ${index.length}`);
+    throw new Error(
+      `count mismatch: wrote ${written}, municipios ${municipios.size}, index ${index.length}`,
+    );
   }
   mkdirSync(join(outDir, 'index'), { recursive: true });
   writeFileSync(join(outDir, 'index', 'all-lite.json'), JSON.stringify(index));
@@ -81,7 +103,10 @@ function main() {
   );
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop())) {
+if (
+  process.argv[1] &&
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop())
+) {
   main();
 }
 

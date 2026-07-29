@@ -69,7 +69,9 @@ async function main() {
     total += kb;
     console.log(`${ides}.webp <- ${file} (${kb.toFixed(0)} KB)`);
   }
-  console.log(`total: ${(total / 1024).toFixed(2)} MB across ${estados.length - missing.length} images`);
+  console.log(
+    `total: ${(total / 1024).toFixed(2)} MB across ${estados.length - missing.length} images`,
+  );
   if (missing.length) {
     console.error(`MISSING (${missing.length}): ${missing.join(', ')}`);
     process.exit(1);

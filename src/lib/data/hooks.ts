@@ -3,7 +3,11 @@
 import { useFetch, type FetchState } from './useFetch';
 import type { EstadoRow, IndexRow, Meta, MunicipioForecast } from './types';
 
-export function useForecast(ides: string, idmun: string, retryToken = 0): FetchState<MunicipioForecast> {
+export function useForecast(
+  ides: string,
+  idmun: string,
+  retryToken = 0,
+): FetchState<MunicipioForecast> {
   return useFetch<MunicipioForecast>(`data/forecast/${ides}/${idmun}.json`, retryToken);
 }
 

@@ -2,7 +2,13 @@ import Box from '../primitives/Box';
 import Stack from '../primitives/Stack';
 import Text from '../primitives/Text';
 
-export default function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+export default function ErrorState({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry?: () => void;
+}) {
   return (
     <Box variant="surface" padding={5} role="alert">
       <Stack gap={3} align="start">

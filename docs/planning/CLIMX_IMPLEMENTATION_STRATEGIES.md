@@ -1,4 +1,5 @@
 # CLIMX_IMPLEMENTATION_STRATEGIES — per-stage edit sites, contracts, validation
+
 Tier: T1 companion to [`CLIMX_MASTER_PLAN.md`](CLIMX_MASTER_PLAN.md) (the why/walls/gates
 live there; this doc is the concrete how). Status: `designed` 2026-07-19. Design identity:
 [`../ARCHITECTURE.md`](../ARCHITECTURE.md). Registered in [`../REGISTER.md`](../REGISTER.md).
@@ -8,12 +9,13 @@ Convention: package versions are "latest stable at install time", pinned by
 ## S0 — Scaffold + gates
 
 **Create** (on branch `rebuild`, repo root):
+
 - Vite scaffold: `npm create vite@latest . -- --template react-ts` (adapted to the
   existing repo; v0's `src/` is REPLACED on this branch only — W5 keeps it on `main`).
 - `tsconfig.json`: `"strict": true` plus `noUncheckedIndexedAccess: true`.
 - `src/styles/tokens.css` (stub, grown at S3): CSS custom properties —
   `--space-1..8` (4/8/12/16/24/32/48/64 px), semantic colors (`--color-bg/-surface/-text/
-  -accent/-warning`), type scale (`--font-size-100..600`), 2 breakpoint documentation
+-accent/-warning`), type scale (`--font-size-100..600`), 2 breakpoint documentation
   comments (media queries can't read custom properties; the values are documented here
   and repeated literally in the primitives' CSS).
 - `src/router/router.tsx` — the hand-rolled router, minimal at S0 (`/` only). **Public
@@ -29,7 +31,7 @@ Convention: package versions are "latest stable at install time", pinned by
   → `npm run lint` → `npm run typecheck` (`tsc --noEmit`) → `npm test -- --coverage` →
   `npm run build`.
 - `.github/workflows/deploy.yml`: job `deploy`, **`needs: ci`**, `if: github.ref ==
-  'refs/heads/main'` (fires only after cutover; during S0–S4 verification deploys run from
+'refs/heads/main'` (fires only after cutover; during S0–S4 verification deploys run from
   `rebuild` via a temporary `workflow_dispatch` trigger, removed at S5), using
   `actions/upload-pages-artifact` + `actions/deploy-pages`.
 - `vite.config.ts`: `base` set for project-page hosting (repo has no CNAME — verified in
@@ -44,6 +46,7 @@ command).
 ## S1 — Pipeline live
 
 **Create:**
+
 - `scripts/fetch-smn.mjs` (plain Node ≥18, zero deps): GET
   `https://smn.conagua.gob.mx/tools/GUI/webservices/?method=1` → gunzip (`node:zlib`) →
   **schema guard**: `Array.isArray(d) && d.length > 2000` and a sampled record has
@@ -53,18 +56,18 @@ command).
   - `public/data/forecast/{ides}/{idmun}.json` — key = **`${ides}/${idmun}`** (W1; the
     composite is the only key that appears anywhere in this file's code),
   - `public/data/index/all-lite.json` — per-municipio row `[ides, idmun, nmun, nes, lat,
-    lon]` (array-of-arrays; `ides` FIRST, so no consumer can forget it),
+lon]` (array-of-arrays; `ides` FIRST, so no consumer can forget it),
   - `public/data/index/estados.json` — `[ides, nes]` pairs,
   - `public/data/meta.json` — `{ fetchedAt, ok, lastAttempt, recordCount,
-    municipioCount }`; on failed runs only `ok:false` + `lastAttempt` change (W3).
+municipioCount }`; on failed runs only `ok:false` + `lastAttempt` change (W3).
   - Asserts `municipioCount === new Set(records.map(r => r.ides+'/'+r.idmun)).size` and
     that the forecast file count equals it (the S1 gate's 2,463 assertion — the number is
     read from the data, not hardcoded, in case SMN adds municipios).
 - `.github/workflows/data-refresh.yml`: `on: schedule: cron: '23 1,5,9,13,17,21 * * *'`
-  + `workflow_dispatch`; `permissions: contents: write`; steps: checkout → run both
-  scripts → **content-hash skip-if-unchanged** (hash of `public/data/**` EXCLUDING
-  `meta.json`; commit data only when it changed; `meta.json` commits every run — the
-  always-commit keeps the 60-day inactivity clock reset) → `git commit` + `git push`.
+  - `workflow_dispatch`; `permissions: contents: write`; steps: checkout → run both
+    scripts → **content-hash skip-if-unchanged** (hash of `public/data/**` EXCLUDING
+    `meta.json`; commit data only when it changed; `meta.json` commits every run — the
+    always-commit keeps the 60-day inactivity clock reset) → `git commit` + `git push`.
 
 **Validate:** manual `workflow_dispatch` run green → deployed `meta.json.fetchedAt` < 4 h
 · the 2,463 assertion in the run log · measured raw/gzip of `all-lite.json` + a sampled
@@ -74,6 +77,7 @@ skip-if-unchanged path (log shows the skip).
 ## S2 — Watchdog + forced-failure
 
 **Create:**
+
 - `.github/workflows/data-watchdog.yml`: same off-hour cron; single step fetches the
   deployed `meta.json` and exits 1 if `now - fetchedAt > 12h` — GitHub's failure e-mail
   is the alarm (zero extra services, W4).
@@ -87,6 +91,7 @@ CI (added to `ci.yml`'s test step).
 ## S3 — Municipality view
 
 **Create:**
+
 - `src/primitives/` — `Stack`, `Cluster`, `Grid`, `Box`, `Text` (+ one `.module.css`
   each, consuming only `tokens.css` vars; `Text` takes a semantic `as` prop:
   `h1|h2|p|span|...`). Props extend the native element's props
@@ -113,6 +118,7 @@ works) · W7 sweep.
 ## S4 — Search / browse / geolocation
 
 **Create:**
+
 - `src/lib/data/useMunicipioIndex.ts` (loads `all-lite.json` once, long TTL).
 - `src/lib/geo/haversine.ts` + `nearestMunicipio.ts` (+ tests with known-answer pairs).
 - `src/components/SearchCombobox.tsx` — ARIA combobox/listbox roles, full keyboard

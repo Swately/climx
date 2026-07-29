@@ -3,8 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { useFetch } from './useFetch';
 import { useForecast, useMeta, useMunicipioIndex, useEstados } from './hooks';
 
-const okResponse = (body: unknown) =>
-  ({ ok: true, json: () => Promise.resolve(body) }) as Response;
+const okResponse = (body: unknown) => ({ ok: true, json: () => Promise.resolve(body) }) as Response;
 
 beforeEach(() => localStorage.clear());
 afterEach(() => vi.unstubAllGlobals());
@@ -26,7 +25,10 @@ describe('useFetch', () => {
   });
 
   it('re-fetches when retryToken changes (derived loading, no stale state)', async () => {
-    const f = vi.fn().mockRejectedValueOnce(new Error('offline')).mockResolvedValue(okResponse({ v: 2 }));
+    const f = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValue(okResponse({ v: 2 }));
     vi.stubGlobal('fetch', f);
     const { result, rerender } = renderHook(({ t }) => useFetch<{ v: number }>('data/c.json', t), {
       initialProps: { t: 0 },

@@ -11,7 +11,9 @@
         var l = window.location;
         // TOUCHPOINT: keep in sync with vite.config.ts base.
         var base = '/project-tw/';
-        var path = l.pathname.startsWith(base) ? l.pathname.slice(base.length) : l.pathname.slice(1);
+        var path = l.pathname.startsWith(base)
+          ? l.pathname.slice(base.length)
+          : l.pathname.slice(1);
         l.replace(
           l.origin +
             base +

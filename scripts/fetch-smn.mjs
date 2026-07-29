@@ -26,7 +26,9 @@ export const REQUIRED_FIELDS = [
 export function decodePayload(buf) {
   const b = Buffer.from(buf);
   const text =
-    b.length > 2 && b[0] === 0x1f && b[1] === 0x8b ? gunzipSync(b).toString('utf8') : b.toString('utf8');
+    b.length > 2 && b[0] === 0x1f && b[1] === 0x8b
+      ? gunzipSync(b).toString('utf8')
+      : b.toString('utf8');
   return JSON.parse(text);
 }
 
@@ -64,7 +66,10 @@ async function main() {
   console.log(`ok: ${data.length} records -> ${out}`);
 }
 
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop())) {
+if (
+  process.argv[1] &&
+  import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop())
+) {
   main().catch((err) => {
     console.error(`fetch failed: ${err?.message ?? err}`);
     process.exit(1);

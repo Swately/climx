@@ -98,7 +98,14 @@ export function Link({ to, children, onClick, ...rest }: LinkProps) {
       onClick={(e) => {
         onClick?.(e);
         // Only intercept plain left-clicks; modified clicks keep native behavior.
-        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)
+        if (
+          e.defaultPrevented ||
+          e.button !== 0 ||
+          e.metaKey ||
+          e.ctrlKey ||
+          e.shiftKey ||
+          e.altKey
+        )
           return;
         e.preventDefault();
         navigate(to);

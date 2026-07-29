@@ -1,0 +1,7 @@
+public/data/
+public/img/
+dist/
+coverage/
+node_modules/
+package-lock.json
+docs/planning/aap/

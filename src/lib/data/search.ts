@@ -2,11 +2,7 @@ import type { IndexRow } from './types';
 
 /** Lowercase + strip diacritics, so "tezoatlan" finds "Tezoatlán". */
 export function normalize(s: string): string {
-  return s
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .trim();
+  return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
 /** Prefix-then-substring ranked municipio search over the index. */

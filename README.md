@@ -1,70 +1,58 @@
-# Getting Started with Create React App
+# climx
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Municipal-level weather forecast for Mexico — all 2,463 municipios — built on the
+official SMN/CONAGUA data feed. Live at: _(pending first deploy)_.
 
-## Available Scripts
+Search any municipio (accent-insensitive), browse by state, or use one-tap
+geolocation (no external geocoding service — nearest-municipio is computed
+client-side over the dataset's own coordinates). Data refreshes automatically
+every 4 hours via GitHub Actions and the UI always shows how old it is; if the
+source goes down, the site keeps serving the last good snapshot and says so.
 
-In the project directory, you can run:
+## Why it's built the way it is
 
-### `npm start`
+- **No backend, $0/month, no API keys.** The SMN endpoint has no CORS, so a
+  scheduled GitHub Action fetches, validates, and partitions the national payload
+  (5 MB) into per-municipio static files (~350 B gzip each) served by GitHub
+  Pages. A failed fetch touches nothing — last-good data is never overwritten.
+- **The dataset's trap, handled.** `idmun` is NOT a national key (INEGI numbering
+  resets per state: 570 distinct values for 2,463 municipios). Every path, route,
+  and lookup here is keyed by the composite `(ides, idmun)` — and a regression
+  test keeps it that way.
+- **Hand-rolled where it teaches, dependencies where it doesn't.** 2 runtime
+  dependencies (react, react-dom). The router (History API + GH-Pages deep-link
+  shim), the fetch/cache/staleness layer, the layout primitives
+  (`Stack/Cluster/Grid/Box/Text` over design tokens), and the ARIA combobox are
+  project code, tested. See `/lab` for the living styleguide.
+- **Quality gates in CI:** ESLint (+ jsx-a11y) · `tsc --noEmit` (TS strict) ·
+  Vitest (41 tests; data layer gated at ≥80% line coverage) · build — on every
+  push/PR; deploy only after checks pass. An independent watchdog workflow alarms
+  if data goes stale.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+React 19 · TypeScript (strict) · Vite · Vitest + Testing Library · CSS Modules
+over custom-property design tokens · GitHub Actions + Pages.
 
-### `npm test`
+## Run it
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+npm ci
+npm run dev        # dev server
+npm test           # unit + component tests
+npm run coverage   # with the data-layer threshold gate
+npm run build      # production build
+```
 
-### `npm run build`
+Data can be regenerated locally: `node scripts/fetch-smn.mjs out.json && node
+scripts/partition-data.mjs out.json public/data`.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Provenance
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Rebuilt 2026 from a 2023 university project (preserved at tag `v0-school`).
+The architecture was selected through a documented design search — three
+candidate architectures, adversarial review, feasibility veto — recorded in
+[`docs/planning/aap/`](docs/planning/aap/). Design: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Measured numbers: [`docs/planning/MEASUREMENTS.md`](docs/planning/MEASUREMENTS.md).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Data source: Servicio Meteorológico Nacional (CONAGUA), México.

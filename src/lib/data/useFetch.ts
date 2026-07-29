@@ -19,7 +19,8 @@ export function useFetch<T>(path: string, retryToken = 0): FetchState<T> {
     let alive = true;
     fetchWithCache<T>(path)
       .then((r) => {
-        if (alive) setResult({ key, state: { status: 'ok', data: r.data, fromCache: r.fromCache } });
+        if (alive)
+          setResult({ key, state: { status: 'ok', data: r.data, fromCache: r.fromCache } });
       })
       .catch((err: unknown) => {
         if (alive)
