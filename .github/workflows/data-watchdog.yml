@@ -1,0 +1,29 @@
+# climx staleness watchdog — independent of the fetch logic (the AAP graft from
+# D2 §9): asserts the repo's data is < 12h old and fails loudly if not, so
+# "pipeline stuck" is visible (GitHub's failed-workflow e-mail) instead of silent.
+# Offset from both the hour and the refresh cron.
+name: data-watchdog
+on:
+  schedule:
+    - cron: '41 3,7,11,15,19,23 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: assert freshness (<12h)
+        run: |
+          node -e '
+            const meta = JSON.parse(require("node:fs").readFileSync("public/data/meta.json", "utf8"));
+            if (!meta.fetchedAt) { console.error("no fetchedAt — pipeline never succeeded"); process.exit(1); }
+            const ageH = (Date.now() - Date.parse(meta.fetchedAt)) / 3.6e6;
+            console.log(`data age: ${ageH.toFixed(1)}h (ok=${meta.ok})`);
+            if (ageH > 12) { console.error("STALE: > 12h"); process.exit(1); }
+          '
+
+# Made with my soul - Swately <3
