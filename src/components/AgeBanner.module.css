@@ -1,0 +1,9 @@
+.ok {
+  color: var(--color-text-muted);
+}
+
+.warn {
+  color: var(--color-warning);
+}
+
+/* Made with my soul - Swately <3 */

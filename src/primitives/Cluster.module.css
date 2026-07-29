@@ -1,0 +1,11 @@
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cluster-gap);
+  align-items: var(--cluster-align);
+  justify-content: var(--cluster-justify);
+  padding: 0;
+  list-style: none;
+}
+
+/* Made with my soul - Swately <3 */

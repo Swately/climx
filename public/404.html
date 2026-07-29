@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- GitHub Pages SPA deep-link shim: Pages has no server-side rewrites, so unknown
+     paths land here; we bounce to index.html with the path encoded in the query,
+     and main.tsx restores it before React mounts. Standard spa-github-pages pattern. -->
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>climx</title>
+    <script>
+      (function () {
+        var l = window.location;
+        // TOUCHPOINT: keep in sync with vite.config.ts base.
+        var base = '/project-tw/';
+        var path = l.pathname.startsWith(base) ? l.pathname.slice(base.length) : l.pathname.slice(1);
+        l.replace(
+          l.origin +
+            base +
+            '?/' +
+            path.replace(/&/g, '~and~') +
+            (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+            l.hash,
+        );
+      })();
+    </script>
+  </head>
+  <body></body>
+  <!-- Made with my soul - Swately <3 -->
+</html>

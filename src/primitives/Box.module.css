@@ -1,0 +1,11 @@
+.box {
+  padding: var(--box-padding);
+}
+
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--space-2);
+}
+
+/* Made with my soul - Swately <3 */

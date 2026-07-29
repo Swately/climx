@@ -1,0 +1,10 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--stack-gap);
+  align-items: var(--stack-align);
+  padding: 0;
+  list-style: none;
+}
+
+/* Made with my soul - Swately <3 */
