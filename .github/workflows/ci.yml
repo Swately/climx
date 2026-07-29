@@ -1,0 +1,44 @@
+# climx CI — the M5 unconditional gate: lint + typecheck + tests + build on every
+# push/PR; deploy runs ONLY after checks pass (needs: checks).
+# Pages deploy requires the repo setting Pages -> Source: GitHub Actions (operator, once).
+name: ci
+on:
+  push:
+  pull_request:
+  workflow_dispatch: # temporary manual deploy trigger during the rebuild; removed at S5
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run coverage
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: checks
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+# Made with my soul - Swately <3

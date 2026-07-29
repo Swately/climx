@@ -1,0 +1,42 @@
+/*
+ * climx design tokens — THE living document of the primitives sessions.
+ * Rule (M1 item 3): no hardcoded px/hex outside this file; components consume var().
+ * This is the S0 starter skeleton: scales in place, values deliberately minimal —
+ * they grow and get re-designed during the primitives-with-tokens sessions.
+ */
+:root {
+  /* spacing scale — 4px base, multiplicative steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* color roles — semantic, not literal; starter palette, to be designed in-session */
+  --color-bg: #f7f8fa;
+  --color-surface: #ffffff;
+  --color-text: #1c2330;
+  --color-text-muted: #5a6472;
+  --color-accent: #1663c7;
+  --color-warning: #b45309;
+  --color-border: #d7dce3;
+
+  /* type scale — rem-based so user font-size preferences are respected */
+  --font-size-100: 0.75rem;
+  --font-size-200: 0.875rem;
+  --font-size-300: 1rem;
+  --font-size-400: 1.25rem;
+  --font-size-500: 1.563rem;
+  --font-size-600: 1.953rem;
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+
+  /* breakpoints — media queries cannot read custom properties; these values are
+     DOCUMENTED here and repeated literally where used (the one sanctioned repetition):
+     narrow < 480px · mid < 768px · wide >= 768px */
+}
+
+/* Made with my soul - Swately <3 */
