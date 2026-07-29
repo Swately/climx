@@ -8,8 +8,13 @@ on:
     - cron: '23 1,5,9,13,17,21 * * *'
   workflow_dispatch:
 
+# pages+id-token: this workflow ALSO deploys what it commits — GITHUB_TOKEN pushes
+# do not trigger other workflows (GitHub anti-recursion), so the deploy must live
+# in the same workflow or fresh data would never reach the live site.
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   refresh:
@@ -40,6 +45,13 @@ jobs:
             git commit -m "data: refresh"
           fi
           git push
+      - name: build with the fresh data
+        run: npm ci && npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: deploy fresh data to Pages
+        uses: actions/deploy-pages@v4
       - name: fail loudly if the fetch failed
         if: steps.fetch.outputs.failed == '1'
         run: exit 1
