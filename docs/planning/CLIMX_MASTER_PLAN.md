@@ -79,6 +79,18 @@ considered and the design rejected them; reopening is an operator decision). Lif
 primitives to a `catalog/typescript` substrate — blocked until a second consumer project
 exists (no-speculative-layers rule).
 
+## §5.1 S6 — municipio images (operator scope addition, 2026-07-28/29)
+
+Added by operator order after S5: (a) build-time harvest of one free-licensed header
+photo per municipio from Wikidata P18 / es-wiki lead images (filters exclude
+escudos/banderas/mapas/svg), converted to WebP 640 keyed `{ides}/{idmun}`, with per-image
+credit sidecars + an aggregate `/creditos` page (CC attribution — non-negotiable);
+(b) a RUNTIME gallery on the municipio page fed live by the Wikimedia Commons API
+(keyless, anonymous CORS `origin=*` — inside E1) — strictly progressive enhancement: the
+weather core stays static and whole if Commons is down; (c) a sampled+full vision audit
+demoting non-place images (letreros/monumentos/escudos) before they ship. Exit gate:
+measured coverage %, audit pass-rate, W7 sweep green.
+
 ## §6 Done means
 
 All six §4 exit gates green, the M1–M6 sweep recorded in the repo with measured numbers,

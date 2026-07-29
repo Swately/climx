@@ -1,3 +1,4 @@
+import { Link } from '../router/router';
 import { useEstados, useMunicipioIndex } from '../lib/data/hooks';
 import Stack from '../primitives/Stack';
 import Grid from '../primitives/Grid';
@@ -53,7 +54,8 @@ export default function HomePage() {
       </Stack>
       <footer>
         <Text as="p" muted size={200}>
-          Fuente: Servicio Meteorológico Nacional (CONAGUA). Proyecto de código abierto.
+          Fuente: Servicio Meteorológico Nacional (CONAGUA). Fotos de municipios: Wikimedia
+          Commons — <Link to="/creditos">créditos</Link>. Proyecto de código abierto.
         </Text>
       </footer>
     </>

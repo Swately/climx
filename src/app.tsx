@@ -3,12 +3,14 @@ import HomePage from './pages/HomePage';
 import StatePage from './pages/StatePage';
 import MunicipioPage from './pages/MunicipioPage';
 import PrimitivesLab from './pages/PrimitivesLab';
+import CreditsPage from './pages/CreditsPage';
 import NotFound from './pages/NotFound';
 
 const routes: Route[] = [
   { path: '/', page: HomePage },
   { path: '/estado/:ides', page: StatePage },
   { path: '/estado/:ides/municipio/:idmun', page: MunicipioPage },
+  { path: '/creditos', page: CreditsPage },
   { path: '/lab', page: PrimitivesLab },
 ];
 

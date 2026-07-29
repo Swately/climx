@@ -21,9 +21,23 @@ instrument. No entry, no claim.
 | 2026-07-28 | S4 | Quality-veto spot-check (W1) | PASS: `/estado/20/municipio/54` = Zahuatlán 22.7° vs `/estado/14/municipio/54` = El Limón 29.2° — distinct, both match source JSON | live browser + `python` against `public/data` | unconditional veto |
 | 2026-07-28 | S4 | Runtime workload | Home (32 estados + banner "hace menos de 1 h") · combobox ARIA (expanded/activedescendant correct, diacritic-insensitive) · Enter→composite route · console clean | dev server, DOM-event-level interaction (browser pane not composited — synthetic pointer unavailable; declared) | — |
 
+| 2026-07-29 | S6 | Wikidata join | 2,377/2,463 municipios (96.5%); 87 sin join (23 ambiguos; incluye las 16 alcaldías CDMX) | `harvest-muni-images.mjs plan` log | — |
+| 2026-07-29 | S6 | Cosecha de imágenes | **1,657/1,698 elegibles convertidas** (1,259 P18 + 439 portadas es-wiki − filtros − 41 fallos de descarga) | `harvest ... run` log + `find \| wc` | — |
+| 2026-07-29 | S6 | Auditoría visual (14 agentes, TODAS las imágenes) | **1,657/1,657 auditadas: 1,474 ok (89.0%) · 162 bad (9.8%) · 21 suspect (1.3%)**; bad+suspect degradadas (borradas → fallback estado) | workflow `wf_08cc13b0-a04` journal | — |
+| 2026-07-29 | S6 | Cobertura final de foto por municipio | **1,474/2,463 (59.8%)** con foto verificada; resto degrada a foto de estado | conteo en disco post-demolición | — |
+| 2026-07-29 | S6 | Peso imágenes municipios | 71 MB WebP (640px q75) | `du -sh` | ≪ 1 GB Pages |
+| 2026-07-29 | S6 | Test suite + coverage | **50/50 verdes; lib 98.93% líneas / 100% funcs / 87.17% branches** (gate 80 activo — verificado que dispara: exit 1 pre-fix con branches 71.79) | `vitest run --coverage`, exit medido sin pipe | ≥80% |
+| 2026-07-29 | S6 | Bundle | 66.66 KB gzip | `vite build` | ≤150 KB (M4) |
+| 2026-07-29 | S6 | Runtime (navegador) | Comondú: foto header + crédito "José González Peña · CC BY-SA 4.0" · galería viva 6 ítems del API de Commons con créditos · thumb del CDN verificado eager 330×220 · `/creditos` 31 grupos · consola limpia | dev server + DOM checks | — |
+
 Notes:
 
 - NOT yet run: **Lighthouse (M6)** and the **CI workflow's own first run** — both need
   the deployed Pages URL (pending the operator's push + Pages-enable go). Declared.
 - The M4 view-payload number on the DEPLOYED site (with Pages' gzip) is also pending
   deploy; local artifact sizes above are its proxy, labelled as such.
+- Gallery lazy-thumbs report 0-loaded under the non-compositing preview pane (lazy
+  loading needs a real rendered viewport); the thumb URL itself verified loadable
+  eagerly (330×220). Declared, not hidden.
+- CDMX: 0 fotos de municipio (las alcaldías quedan fuera de la clase Wikidata del join)
+  — degradan a la foto del estado. BC: 4/5.

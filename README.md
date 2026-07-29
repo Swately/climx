@@ -8,6 +8,10 @@ geolocation (no external geocoding service — nearest-municipio is computed
 client-side over the dataset's own coordinates). Data refreshes automatically
 every 4 hours via GitHub Actions and the UI always shows how old it is; if the
 source goes down, the site keeps serving the last good snapshot and says so.
+Each municipio page carries a free-licensed photo harvested from
+Wikidata/Wikimedia Commons (with per-image attribution and a
+[credits page](/creditos)) plus a live Commons gallery — a progressive
+enhancement that never blocks the weather core.
 
 ## Why it's built the way it is
 
