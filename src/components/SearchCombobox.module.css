@@ -1,0 +1,57 @@
+.wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 28rem;
+}
+
+.input {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--space-1);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--color-surface);
+  border-radius: var(--space-1);
+  box-shadow: 0 var(--space-1) var(--space-3) rgb(0 0 0 / 0.15);
+}
+
+.list:empty {
+  display: none;
+}
+
+.option,
+.optionActive {
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+}
+
+.optionActive {
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
+
+.optionActive .state,
+.option .state {
+  font-size: var(--font-size-200);
+  opacity: 0.75;
+}
+
+/* Made with my soul - Swately <3 */

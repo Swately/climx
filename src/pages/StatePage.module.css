@@ -1,0 +1,8 @@
+.banner {
+  width: 100%;
+  height: 10rem;
+  object-fit: cover;
+  border-radius: var(--space-2);
+}
+
+/* Made with my soul - Swately <3 */
