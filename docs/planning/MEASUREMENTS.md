@@ -41,3 +41,16 @@ Notes:
   eagerly (330×220). Declared, not hidden.
 - CDMX: 0 fotos de municipio (las alcaldías quedan fuera de la clase Wikidata del join)
   — degradan a la foto del estado. BC: 4/5.
+
+## Deploy final (2026-07-29, sitio VIVO en https://swately.github.io/project-tw/)
+
+| Metric | Measured LIVE | Cap |
+| --- | --- | --- |
+| CI real (main) | checks: success · deploy: success (runs 30493221560+) | M5 ✓ |
+| Data en vivo | `meta.json.fetchedAt = 2026-07-29T21:40:19Z` — el workflow de refresh fetch→commit→build→deploy probado end-to-end | M3 ✓ |
+| Lighthouse HOME (mobile) | **Performance 90 · Accessibility 100** | ≥90/≥90 ✓ |
+| Lighthouse MUNICIPIO (mobile, vía shim) | **Performance 100 · Accessibility 98** (finalUrl = ruta real: shim verificado en vivo) | ≥90/≥90 ✓ |
+| Fix cazado en producción | pushes de `GITHUB_TOKEN` no encadenan workflows → data-refresh ahora se auto-despliega (commit `main`) | — |
+| v0 preservada | tag `v0-school` pusheado; cutover ff `103ab02..abee461` | W5 ✓ |
+
+**M1–M6: TODAS las métricas del objetivo congelado, medidas en el target real. El sweep del §6 "Done means" está completo.**
