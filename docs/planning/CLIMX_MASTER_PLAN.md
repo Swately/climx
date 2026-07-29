@@ -60,13 +60,14 @@ execution order, gates, and discipline.
 Estimated total 40–58 h (estimate, not measured; integration risk priced — see
 `aap/SYNTHESIS.md` A.3).
 
-**Resequencing (operator order, 2026-07-19):** the operator wants the
-primitives-with-tokens work to be the interactive, step-by-step centerpiece. The ladder
-runs **S0 → S3a (primitives lab: `Stack/Cluster/Grid/Box/Text` + tokens, built in-session
-on the `/lab` route) → S1 → S2 → S3b (municipality view) → S4 → S5**. S1/S2 (pipeline)
-have no dependency on the primitives and move after them. S0's "live on Pages" exit-gate
-item is split out: local gates verified at S0; the Pages deploy fires with the first
-push (operator go), and Lighthouse baselines then.
+**Resequencing history:** 2026-07-19 the operator first ordered a primitives-first
+interactive ladder; later the same day superseded it — **full autonomous build, no
+per-stage review stops** ("no tengo tiempo para hacer el proyecto lentamente
+aprendiendo... desarrollarlo por completo... sin que me pare a revisarlo"). The ladder
+reverts to S0→S5 in order; per-stage local commits proceed without per-stage gos; the
+single remaining operator stop is at the END: push + enable Pages (+ the S5 cutover
+merge rides on that same go). Lighthouse and the live CI run are deploy-dependent and
+stay declared-not-run until then.
 
 ## §5 What this plan does NOT cover (explicit non-scope)
 

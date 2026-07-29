@@ -1,0 +1,47 @@
+# climx data refresh — every 4h, minute-offset off the top-of-hour high-load window.
+# W3: a failed fetch touches nothing except meta.json's attempt stamp.
+# meta.json commits EVERY run (keeps the 60-day scheduled-workflow clock reset);
+# forecast/index data commits only when content actually changed.
+name: data-refresh
+on:
+  schedule:
+    - cron: '23 1,5,9,13,17,21 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: fetch + partition (skip partition on fetch failure)
+        id: fetch
+        run: |
+          if node scripts/fetch-smn.mjs /tmp/smn.json; then
+            node scripts/partition-data.mjs /tmp/smn.json public/data
+          else
+            echo "failed=1" >> "$GITHUB_OUTPUT"
+          fi
+      - name: stamp the attempt (always)
+        run: node scripts/mark-attempt.mjs public/data ${{ steps.fetch.outputs.failed == '1' && 'failed' || '' }}
+      - name: commit
+        run: |
+          git config user.name "climx-data-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/data
+          if git diff --cached --quiet -- public/data ':!public/data/meta.json'; then
+            git commit -m "data: attempt stamp" -- public/data/meta.json || true
+          else
+            git commit -m "data: refresh"
+          fi
+          git push
+      - name: fail loudly if the fetch failed
+        if: steps.fetch.outputs.failed == '1'
+        run: exit 1
+
+# Made with my soul - Swately <3
