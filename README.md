@@ -1,7 +1,7 @@
 # climx
 
 Municipal-level weather forecast for Mexico — all 2,463 municipios — built on the
-official SMN/CONAGUA data feed. Live at: _(pending first deploy)_.
+official SMN/CONAGUA data feed. Live at: **<https://swately.github.io/climx/>**
 
 Search any municipio (accent-insensitive), browse by state, or use one-tap
 geolocation (no external geocoding service — nearest-municipio is computed

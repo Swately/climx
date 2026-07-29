@@ -2,10 +2,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// base = GitHub Pages project path. TOUCHPOINT: if the repo is renamed
-// (project-tw -> climx), this value and the Pages URL move together.
+// base = GitHub Pages project path. TOUCHPOINT: renamed with the repo
+// (project-tw -> climx, 2026-07-29) together with public/404.html and the
+// Pages URL.
 export default defineConfig({
-  base: '/project-tw/',
+  base: '/climx/',
   plugins: [react()],
   test: {
     environment: 'jsdom',

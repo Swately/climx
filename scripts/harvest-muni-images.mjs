@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import sharp from 'sharp';
 
-const UA = 'climx-image-harvester/1.0 (personal project; github.com/Swately/project-tw)';
+const UA = 'climx-image-harvester/1.0 (personal project; github.com/Swately/climx)';
 const SPARQL = 'https://query.wikidata.org/sparql';
 const BAD_FILE =
   /escudo|coat[_ ]of[_ ]arms|bandera|flag|mapa|map[_ .(]|glifo|glyph|seal|logo|locator|\.svg$|\.pdf$|\.tif$/i;
