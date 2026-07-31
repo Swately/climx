@@ -34,7 +34,16 @@ export function matchPath(pattern: string, pathname: string): Params | null {
   const params: Params = {};
   for (let i = 0; i < pat.length; i++) {
     const p = pat[i] as string;
-    const s = decodeURIComponent(path[i] as string);
+    // A malformed percent-escape (e.g. "%E0%A4%A" from a truncated shared link
+    // or a crawler) makes decodeURIComponent THROW. Unguarded, that exception
+    // escapes matchPath during render and blanks the whole app; treated as
+    // "no match" it falls through to the 404 page, which is the honest answer.
+    let s: string;
+    try {
+      s = decodeURIComponent(path[i] as string);
+    } catch {
+      return null;
+    }
     if (p.startsWith(':')) params[p.slice(1)] = s;
     else if (p !== s) return null;
   }

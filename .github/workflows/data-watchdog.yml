@@ -15,15 +15,21 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: assert freshness (<12h)
+      # Checks the DEPLOYED site, not the repo checkout: a repo that is fresh
+      # while the deploy is broken is exactly the failure this alarm exists for.
+      - name: assert deployed freshness (<12h)
         run: |
           node -e '
-            const meta = JSON.parse(require("node:fs").readFileSync("public/data/meta.json", "utf8"));
-            if (!meta.fetchedAt) { console.error("no fetchedAt — pipeline never succeeded"); process.exit(1); }
-            const ageH = (Date.now() - Date.parse(meta.fetchedAt)) / 3.6e6;
-            console.log(`data age: ${ageH.toFixed(1)}h (ok=${meta.ok})`);
-            if (ageH > 12) { console.error("STALE: > 12h"); process.exit(1); }
+            const url = "https://swately.github.io/climx/data/meta.json?cb=" + Date.now();
+            fetch(url, { signal: AbortSignal.timeout(30000) })
+              .then(r => r.ok ? r.json() : Promise.reject(new Error("HTTP " + r.status)))
+              .then(meta => {
+                if (!meta.fetchedAt) { console.error("no fetchedAt — pipeline never succeeded"); process.exit(1); }
+                const ageH = (Date.now() - Date.parse(meta.fetchedAt)) / 3.6e6;
+                console.log(`deployed data age: ${ageH.toFixed(1)}h (ok=${meta.ok}, lastAttempt=${meta.lastAttempt})`);
+                if (ageH > 12) { console.error("STALE: deployed data older than 12h"); process.exit(1); }
+              })
+              .catch(err => { console.error("watchdog could not read the deployed meta.json: " + err.message); process.exit(1); });
           '
 
 # Made with my soul - Swately <3

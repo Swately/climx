@@ -121,7 +121,12 @@ if (
   process.argv[1] &&
   import.meta.url.endsWith(process.argv[1].replace(/\\/g, '/').split('/').pop())
 ) {
-  main();
+  try {
+    main();
+  } catch (err) {
+    console.error(`partition failed: ${err?.message ?? err}`);
+    process.exit(1);
+  }
 }
 
 // Made with my soul - Swately <3

@@ -20,11 +20,24 @@ export default function AgeBanner() {
   }
   const hours = ageHours(now, meta.data.fetchedAt);
   const stale = isStale(hours);
+  // `ok === false` means the last pipeline attempt failed (SMN unreachable or a
+  // rejected payload). Saying only "actualizado hace Xh" while that is true
+  // reads calmer than reality — the banner is the M3 honesty surface, so the
+  // failed attempt is named even before the 12 h staleness threshold trips.
+  const lastAttemptFailed = meta.data.ok === false;
   return (
-    <Text as="p" size={200} className={stale ? styles.warn : styles.ok} aria-live="polite">
+    <Text
+      as="p"
+      size={200}
+      className={stale || lastAttemptFailed ? styles.warn : styles.ok}
+      aria-live="polite"
+    >
       Datos del SMN actualizados {ageLabel(hours)}
       {meta.fromCache ? ' (copia local)' : ''}
       {stale ? ' — pueden estar desactualizados' : ''}
+      {lastAttemptFailed
+        ? ' — el último intento de actualización falló; se muestra el último dato bueno'
+        : ''}
     </Text>
   );
 }

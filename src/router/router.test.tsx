@@ -25,6 +25,13 @@ describe('matchPath', () => {
   it('decodes URI segments', () => {
     expect(matchPath('/x/:name', '/x/San%20Salvador')).toEqual({ name: 'San Salvador' });
   });
+
+  it('treats a malformed percent-escape as no-match instead of throwing', () => {
+    // Unguarded decodeURIComponent here used to crash the whole app at render.
+    expect(() => matchPath('/x/:name', '/x/%E0%A4%A')).not.toThrow();
+    expect(matchPath('/x/:name', '/x/%E0%A4%A')).toBeNull();
+    expect(matchPath('/estado/:ides/municipio/:idmun', '/estado/9/municipio/%')).toBeNull();
+  });
 });
 
 describe('stripBase', () => {

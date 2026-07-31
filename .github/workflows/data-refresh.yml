@@ -19,6 +19,10 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    # Same environment ci.yml's deploy declares: without it this job's
+    # deploy-pages call bypasses the environment's protection rules.
+    environment:
+      name: github-pages
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

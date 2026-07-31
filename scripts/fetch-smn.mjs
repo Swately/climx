@@ -2,7 +2,7 @@
 // On ANY failure: exit non-zero having written NOTHING (wall W3 — last-good data
 // is never touched by a bad run). Usage: node fetch-smn.mjs <out.json>
 import { gunzipSync } from 'node:zlib';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync } from 'node:fs';
 
 export const SMN_URL = 'https://smn.conagua.gob.mx/tools/GUI/webservices/?method=1';
 
@@ -32,17 +32,48 @@ export function decodePayload(buf) {
   return JSON.parse(text);
 }
 
-/** Returns null when valid, else a human-readable reason (the schema guard). */
-export function validatePayload(data) {
+/**
+ * Returns null when valid, else a human-readable reason (the schema guard).
+ *
+ * `expectedRecords` is the last successful run's recordCount when known: a
+ * partial SMN response (a few states missing) is the dangerous case, because it
+ * parses fine and would silently overwrite good data with an incomplete map.
+ * The floor is therefore relative (90% of last-known) with an absolute backstop,
+ * and EVERY record is shape-checked — not just the first — so a malformed entry
+ * cannot reach the partitioner.
+ */
+export function validatePayload(data, expectedRecords = null) {
   if (!Array.isArray(data)) return 'payload is not an array';
-  if (data.length <= 2000) return `too few records: ${data.length}`;
-  const sample = data[0];
-  if (typeof sample !== 'object' || sample === null) return 'first record is not an object';
-  for (const f of REQUIRED_FIELDS) {
-    if (!(f in sample)) return `missing field in sample record: ${f}`;
+
+  const floor = expectedRecords
+    ? Math.max(ABSOLUTE_MIN_RECORDS, Math.floor(expectedRecords * 0.9))
+    : ABSOLUTE_MIN_RECORDS;
+  if (data.length < floor) {
+    return (
+      `too few records: ${data.length} < ${floor}` +
+      (expectedRecords ? ` (90% of last-known ${expectedRecords})` : '')
+    );
+  }
+
+  for (let i = 0; i < data.length; i++) {
+    const r = data[i];
+    if (typeof r !== 'object' || r === null) return `record ${i} is not an object`;
+    for (const f of REQUIRED_FIELDS) {
+      if (!(f in r)) return `record ${i} missing field: ${f}`;
+    }
+  }
+
+  // A truncated payload can still be well-formed: check the municipio coverage.
+  const municipios = new Set(data.map((r) => `${r.ides}/${r.idmun}`));
+  const expectedMunicipios = expectedRecords ? Math.floor((expectedRecords / 4) * 0.9) : 0;
+  if (expectedMunicipios && municipios.size < expectedMunicipios) {
+    return `too few municipios: ${municipios.size} < ${expectedMunicipios}`;
   }
   return null;
 }
+
+/** Absolute backstop when no previous run is known (~81% of the 9,852 observed). */
+export const ABSOLUTE_MIN_RECORDS = 8000;
 
 async function main() {
   const out = process.argv[2];
@@ -57,7 +88,15 @@ async function main() {
     process.exit(1);
   }
   const data = decodePayload(await res.arrayBuffer());
-  const reason = validatePayload(data);
+  // Compare against the last successful run when the deployed meta is at hand.
+  let expected = null;
+  try {
+    const meta = JSON.parse(readFileSync('public/data/meta.json', 'utf8'));
+    expected = typeof meta.recordCount === 'number' ? meta.recordCount : null;
+  } catch {
+    // First run, or no repo checkout: the absolute backstop applies.
+  }
+  const reason = validatePayload(data, expected);
   if (reason !== null) {
     console.error(`payload rejected: ${reason}`);
     process.exit(1);

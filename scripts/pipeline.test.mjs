@@ -48,20 +48,43 @@ describe('decodePayload', () => {
 });
 
 describe('validatePayload (schema guard)', () => {
-  const many = Array.from({ length: 2500 }, () => rec());
+  // Realistic shape: 2,463 distinct municipios × 4 days = 9,852 records.
+  const many = Array.from({ length: 2463 }, (_, i) =>
+    Array.from({ length: 4 }, (_, d) =>
+      rec({ ides: String((i % 32) + 1), idmun: String(i + 1), ndia: String(d) }),
+    ),
+  ).flat();
   it('accepts a well-formed payload', () => {
     expect(validatePayload(many)).toBeNull();
+    expect(validatePayload(many, 9852)).toBeNull();
   });
   it('rejects non-arrays and short payloads', () => {
     expect(validatePayload({})).toMatch(/not an array/);
-    expect(validatePayload([rec()])).toMatch(/too few/);
+    expect(validatePayload([rec()])).toMatch(/too few records/);
   });
-  it('rejects a payload missing a required field', () => {
+  it('rejects a payload missing a required field ANYWHERE, not just the first record', () => {
     for (const f of REQUIRED_FIELDS) {
       const broken = many.map((r) => ({ ...r }));
-      delete broken[0][f];
+      delete broken[5000][f];
       expect(validatePayload(broken)).toContain(f);
     }
+  });
+  it('rejects a non-object record past the first (would crash the partitioner)', () => {
+    const broken = many.map((r) => ({ ...r }));
+    broken[7000] = null;
+    expect(validatePayload(broken)).toMatch(/record 7000 is not an object/);
+  });
+  it('rejects a PARTIAL payload measured against the last successful run', () => {
+    // The dangerous case: well-formed, parses fine, but several states missing.
+    const partial = many.slice(0, 6000);
+    expect(validatePayload(partial, 9852)).toMatch(/too few records: 6000/);
+    // Just under the absolute backstop with no history is rejected too.
+    expect(validatePayload(many.slice(0, 7999))).toMatch(/too few records/);
+  });
+  it('rejects full-length payloads that collapsed to too few municipios', () => {
+    // Same record count, but every row is the same municipio (a truncated join).
+    const oneMuni = Array.from({ length: 9852 }, () => rec());
+    expect(validatePayload(oneMuni, 9852)).toMatch(/too few municipios/);
   });
 });
 

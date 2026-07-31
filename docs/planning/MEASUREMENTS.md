@@ -64,13 +64,13 @@ del mismo archivo; (b) 989 de 2,463 municipios no tenían sidecar ⇒ 404 garant
 40% del sitio (Tlalpan = alcaldía CDMX, sin foto). Parecía intermitente porque dependía
 del municipio visitado.
 
-| Antes | Después |
-| --- | --- |
-| 1 archivo sidecar por municipio (2,463) + `credits.json` | **1 índice** `images.json` (2,025 entradas, 59 KB gz) que **solo** carga `/creditos` |
-| 2 peticiones extra por vista de municipio (una duplicada) | **0 extra** — el dato viaja dentro del pronóstico como `img` |
-| 404 auto-infligido en 989 municipios | imposible por construcción (campo ausente = sin foto) |
-| galería solo si había foto | **+551 municipios** ganan galería (tienen categoría Commons sin foto) |
-| forecast 3/1 = 344 B gz | 463 B gz (≪ 200 KB, M4) |
+| Antes                                                     | Después                                                                              |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 1 archivo sidecar por municipio (2,463) + `credits.json`  | **1 índice** `images.json` (2,025 entradas, 59 KB gz) que **solo** carga `/creditos` |
+| 2 peticiones extra por vista de municipio (una duplicada) | **0 extra** — el dato viaja dentro del pronóstico como `img`                         |
+| 404 auto-infligido en 989 municipios                      | imposible por construcción (campo ausente = sin foto)                                |
+| galería solo si había foto                                | **+551 municipios** ganan galería (tienen categoría Commons sin foto)                |
+| forecast 3/1 = 344 B gz                                   | 463 B gz (≪ 200 KB, M4)                                                              |
 
 Verificado tras el cambio: lint/tsc/prettier limpios · **51/51 tests** (incl. 2 nuevos: el
 merge respeta la llave compuesta y no filtra entre estados; sin índice los pronósticos
@@ -81,3 +81,34 @@ crédito y galería de 6 ítems, `failedRequests: []`.
 Incidencia observada durante el trabajo: **el endpoint del SMN devolvió HTTP 500** en una
 corrida (`fetch-smn.mjs` salió sin escribir nada — wall W3 funcionando). Confirma que la
 fuente es intermitente y que el guard + watchdog no son decorativos.
+
+## Barrido multi-lente del sitio vivo 2026-07-31 (workflow `wf_03376ab1-c3d`, 7 lentes)
+
+26 hallazgos verificados de primera hand contra el sitio desplegado (1 FATAL, 6 MAJOR,
+10 MINOR, 9 INFO). Corregidos en esta pasada:
+
+| Sev       | Hallazgo                                                                                                                                                                                  | Corrección                                                                                                                                                                                                                                                    |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **FATAL** | `matchPath` llamaba `decodeURIComponent` sin guarda: una URL con escape porcentual malformado (link truncado, crawler) lanzaba `URIError` **durante el render** y dejaba la app en blanco | try/catch → se trata como "no coincide" y cae al 404 propio. Verificado en navegador: `/estado/9/municipio/%E0%A4%A` post-shim ahora muestra "Página no encontrada"                                                                                           |
+| **MAJOR** | El guard del payload SMN sólo exigía >2,000 registros (~20% del real): una respuesta **parcial** bien formada habría sobrescrito datos buenos con un mapa incompleto                      | Piso relativo (90% del último `recordCount` conocido) + backstop absoluto 8,000 + **todos** los registros validados (no sólo el primero) + guard de cobertura de municipios. Medido contra el payload real: ACEPTADO; recortado a 6,000: rechazado (`< 8866`) |
+| **MAJOR** | `AgeBanner` nunca leía `meta.ok`/`lastAttempt`: con el SMN caído el sitio mostraba un banner tranquilo mientras el último intento había fallado                                           | El banner nombra el intento fallido en tono de aviso aunque no se haya cruzado el umbral de 12 h                                                                                                                                                              |
+| **MAJOR** | El watchdog verificaba el `meta.json` del **checkout**, no el desplegado: no podía detectar "repo fresco / deploy roto"                                                                   | Ahora hace fetch de `https://swately.github.io/climx/data/meta.json`                                                                                                                                                                                          |
+| **MAJOR** | `partition-data.mjs` sin `.catch()`: un registro malformado tumbaba el paso sin marcar el intento como fallido                                                                            | try/catch con exit 1 (y el guard de arriba impide que llegue el registro malo)                                                                                                                                                                                |
+| **MAJOR** | El job de `data-refresh` desplegaba a Pages sin declarar `environment: github-pages` (saltándose las reglas del entorno)                                                                  | Declarado, igual que en `ci.yml`                                                                                                                                                                                                                              |
+
+Declarados y NO corregidos (con razón):
+
+- **MINOR** — el token literal `~and~` en un query externo se corrompe en el round-trip del
+  shim. La app nunca genera queries; sólo afectaría a una URL escrita a mano con esa cadena.
+- **INFO** — deep links devuelven HTTP 404 + HTML del shim a clientes sin JS (crawlers,
+  unfurlers de enlaces). Es inherente a una SPA estática en Pages sin prerender; es una
+  limitación conocida de la arquitectura elegida, no un defecto de implementación.
+- **MINOR** — la galería pide `gcmlimit=40` sin paginar; en categorías grandes muestra las
+  primeras 40 alfabéticas (de las que se pintan 12). Sesgo de selección aceptado.
+- **MAJOR (parcial)** — el banner se liga a `meta.json`, no al pronóstico concreto que se
+  está pintando; la vista ya rotula "(copia local)" cuando el pronóstico viene de caché,
+  así que el usuario no queda engañado. Unificarlo queda como mejora pendiente.
+
+Observado durante la pasada: **el SMN estuvo devolviendo HTTP 500 varias horas** (dos
+corridas del cron fallaron); el pipeline se comportó como está diseñado — no tocó nada,
+conservó el último dato bueno y marcó `ok:false`.
