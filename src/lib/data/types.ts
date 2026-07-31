@@ -16,6 +16,21 @@ export type ForecastDay = {
   cc: string;
 };
 
+/**
+ * Free-licensed municipality photo + its Commons category, folded into the
+ * forecast file by the pipeline (one request renders the whole view).
+ * `file === null` means "no photo, gallery only"; the field is absent entirely
+ * for municipios with neither.
+ */
+export type MuniImage = {
+  file: string | null;
+  filePage: string | null;
+  artist: string | null;
+  license: string | null;
+  licenseUrl: string | null;
+  cat: string | null;
+};
+
 export type MunicipioForecast = {
   ides: string;
   idmun: string;
@@ -24,6 +39,7 @@ export type MunicipioForecast = {
   lat: string;
   lon: string;
   days: ForecastDay[];
+  img?: MuniImage;
 };
 
 /** all-lite.json row: [ides, idmun, nmun, nes, lat, lon] — ides FIRST (wall W1). */

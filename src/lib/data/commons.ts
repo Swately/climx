@@ -2,23 +2,11 @@
 // depends on this: if Commons is unreachable the gallery hides and the app is
 // whole. The MediaWiki API allows anonymous CORS via origin=* (no key, no
 // account — inside envelope E1).
+//
+// The per-municipio photo/credit/category is NOT fetched here: it travels
+// inside the forecast file (see MuniImage in ./types) and reaches components as
+// props. This module only owns the LIVE gallery call.
 import { useEffect, useState } from 'react';
-import { useFetch, type FetchState } from './useFetch';
-
-/** Sidecar written by scripts/harvest-muni-images.mjs (committed, same-origin). */
-export type MuniImageSidecar = {
-  file: string;
-  filePage: string;
-  artist: string;
-  license: string;
-  licenseUrl: string | null;
-  cat: string | null;
-  source: 'p18' | 'eswiki-pageimage';
-};
-
-export function useMuniSidecar(ides: string, idmun: string): FetchState<MuniImageSidecar> {
-  return useFetch<MuniImageSidecar>(`data/commons/${ides}/${idmun}.json`);
-}
 
 export type GalleryImage = {
   name: string;
@@ -56,8 +44,7 @@ const stripHtml = (s: string) => s.replace(/<[^>]*>/g, '').trim();
 
 /** Pure parser/filter over the API response; caps at `limit` usable photos. */
 export function parseGallery(json: unknown, limit = 12): GalleryImage[] {
-  const pages =
-    (json as { query?: { pages?: unknown[] } })?.query?.pages ?? ([] as unknown[]);
+  const pages = (json as { query?: { pages?: unknown[] } })?.query?.pages ?? ([] as unknown[]);
   const out: GalleryImage[] = [];
   for (const p of pages as Array<{
     title?: string;
@@ -84,9 +71,7 @@ export function parseGallery(json: unknown, limit = 12): GalleryImage[] {
 }
 
 export type GalleryState =
-  | { status: 'loading' }
-  | { status: 'ok'; images: GalleryImage[] }
-  | { status: 'unavailable' };
+  { status: 'loading' } | { status: 'ok'; images: GalleryImage[] } | { status: 'unavailable' };
 
 /** Live gallery for a Commons category; failure collapses to 'unavailable'. */
 export function useCommonsGallery(cat: string | null): GalleryState {

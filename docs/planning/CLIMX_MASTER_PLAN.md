@@ -84,7 +84,13 @@ exists (no-speculative-layers rule).
 Added by operator order after S5: (a) build-time harvest of one free-licensed header
 photo per municipio from Wikidata P18 / es-wiki lead images (filters exclude
 escudos/banderas/mapas/svg), converted to WebP 640 keyed `{ides}/{idmun}`, with per-image
-credit sidecars + an aggregate `/creditos` page (CC attribution — non-negotiable);
+credit data + an aggregate `/creditos` page (CC attribution — non-negotiable). **Revised
+2026-07-31 (operator design review):** the first cut shipped one sidecar JSON per
+municipio, which duplicated the partition the forecast file already provides, cost a
+second request per view, and made a missing file a self-inflicted 404. Corrected to a
+single harvest index (`public/data/images.json`) that the pipeline folds INTO each
+forecast file as `img` — one request renders the whole view, components receive it as
+props, and a municipio without a photo simply has no `img` field;
 (b) a RUNTIME gallery on the municipio page fed live by the Wikimedia Commons API
 (keyless, anonymous CORS `origin=*` — inside E1) — strictly progressive enhancement: the
 weather core stays static and whole if Commons is down; (c) a sampled+full vision audit

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useCommonsGallery, useMuniSidecar } from './commons';
+import { useCommonsGallery } from './commons';
 
 const okResponse = (body: unknown) => ({ ok: true, json: () => Promise.resolve(body) }) as Response;
 
@@ -54,17 +54,6 @@ describe('useCommonsGallery', () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 } as Response));
     const { result } = renderHook(() => useCommonsGallery('Toluca'));
     await waitFor(() => expect(result.current.status).toBe('unavailable'));
-  });
-});
-
-describe('useMuniSidecar', () => {
-  it('fetches the composite-keyed sidecar (wall W1)', async () => {
-    const sidecar = { file: 'x.jpg', artist: 'A', license: 'CC0', cat: 'Cat', source: 'p18' };
-    const f = vi.fn().mockResolvedValue(okResponse(sidecar));
-    vi.stubGlobal('fetch', f);
-    const { result } = renderHook(() => useMuniSidecar('20', '54'));
-    await waitFor(() => expect(result.current.status).toBe('ok'));
-    expect(String(f.mock.calls[0]?.[0])).toContain('data/commons/20/54.json');
   });
 });
 

@@ -107,6 +107,32 @@ describe('writeOutput', () => {
     const idx = JSON.parse(readFileSync(join(dir, 'index', 'all-lite.json'), 'utf8'));
     expect(idx).toHaveLength(3);
   });
+
+  it('folds the image index into its own municipio only (composite-keyed, W1)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'climx-img-'));
+    const images = {
+      '20/54': { file: 'Zahuatlan.jpg', artist: 'A', license: 'CC0', cat: 'Zahuatlan' },
+      // Same idmun, different state: must NOT leak into 20/54.
+      '14/54': { file: null, artist: null, license: null, cat: 'El Limon' },
+    };
+    writeOutput(dir, partition(W1_FIXTURE), '2026-07-28T00:00:00.000Z', images);
+    const oax = JSON.parse(readFileSync(join(dir, 'forecast', '20', '54.json'), 'utf8'));
+    const jal = JSON.parse(readFileSync(join(dir, 'forecast', '14', '54.json'), 'utf8'));
+    const acatic = JSON.parse(readFileSync(join(dir, 'forecast', '14', '1.json'), 'utf8'));
+    expect(oax.img.file).toBe('Zahuatlan.jpg');
+    expect(jal.img).toEqual(images['14/54']);
+    expect(acatic.img).toBeUndefined(); // no entry -> field absent entirely
+  });
+
+  it('writes identical forecasts when no image index exists (core stays independent)', () => {
+    const a = mkdtempSync(join(tmpdir(), 'climx-noimg-a-'));
+    const b = mkdtempSync(join(tmpdir(), 'climx-noimg-b-'));
+    writeOutput(a, partition(W1_FIXTURE), '2026-07-28T00:00:00.000Z');
+    writeOutput(b, partition(W1_FIXTURE), '2026-07-28T00:00:00.000Z', {});
+    expect(readFileSync(join(a, 'forecast', '20', '54.json'), 'utf8')).toBe(
+      readFileSync(join(b, 'forecast', '20', '54.json'), 'utf8'),
+    );
+  });
 });
 
 describe('fetch-smn forced failure (wall W3)', () => {

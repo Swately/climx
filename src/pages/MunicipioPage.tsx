@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from '../router/router';
 import { useForecast } from '../lib/data/hooks';
-import { useMuniSidecar } from '../lib/data/commons';
 import Stack from '../primitives/Stack';
 import Grid from '../primitives/Grid';
 import Text from '../primitives/Text';
@@ -16,7 +15,6 @@ export default function MunicipioPage() {
   const { ides, idmun } = useParams<{ ides: string; idmun: string }>();
   const [retryToken, setRetryToken] = useState(0);
   const forecast = useForecast(ides, idmun, retryToken);
-  const sidecar = useMuniSidecar(ides, idmun);
 
   return (
     <Stack as="main" gap={5}>
@@ -41,7 +39,7 @@ export default function MunicipioPage() {
         <>
           <header>
             <Stack gap={3}>
-              <MuniHeader ides={ides} idmun={idmun} />
+              <MuniHeader ides={ides} idmun={idmun} img={forecast.data.img} />
               <Stack gap={1}>
                 <Text as="h1" size={600}>
                   {forecast.data.nmun}
@@ -59,7 +57,7 @@ export default function MunicipioPage() {
               <ForecastCard key={day.ndia} day={day} />
             ))}
           </Grid>
-          <CommonsGallery cat={sidecar.status === 'ok' ? sidecar.data.cat : null} />
+          <CommonsGallery cat={forecast.data.img?.cat ?? null} />
         </>
       )}
     </Stack>

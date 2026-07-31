@@ -54,8 +54,8 @@ export default function HomePage() {
       </Stack>
       <footer>
         <Text as="p" muted size={200}>
-          Fuente: Servicio Meteorológico Nacional (CONAGUA). Fotos de municipios: Wikimedia
-          Commons — <Link to="/creditos">créditos</Link>. Proyecto de código abierto.
+          Fuente: Servicio Meteorológico Nacional (CONAGUA). Fotos de municipios: Wikimedia Commons
+          — <Link to="/creditos">créditos</Link>. Proyecto de código abierto.
         </Text>
       </footer>
     </>

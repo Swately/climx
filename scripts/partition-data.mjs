@@ -2,7 +2,7 @@
 // client fetches. EVERY key is the composite (ides, idmun) — wall W1: idmun alone is
 // state-scoped (570 values / 2,463 municipios) and collides for 85.7% of Mexico.
 // Usage: node partition-data.mjs <in.json> <outDir>
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 // Per-day fields kept in a forecast file (the view's actual need).
@@ -59,15 +59,26 @@ export function partition(records) {
   return { index, estados, municipios };
 }
 
-export function writeOutput(outDir, parts, fetchedAt) {
+/**
+ * `images` maps "ides/idmun" -> { file, filePage, artist, license, licenseUrl, cat }
+ * (produced by harvest-muni-images.mjs). Each entry is folded INTO its forecast
+ * file as `img`, so the municipio view fetches everything it renders in one
+ * request. The weather core stays independent: an absent/empty index simply
+ * means no `img` field — forecasts are written exactly the same.
+ */
+export function writeOutput(outDir, parts, fetchedAt, images = {}) {
   const { index, estados, municipios } = parts;
   let written = 0;
+  let withImg = 0;
   for (const m of municipios.values()) {
     const dir = join(outDir, 'forecast', String(m.ides));
     mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, `${m.idmun}.json`), JSON.stringify(m));
+    const img = images[`${m.ides}/${m.idmun}`] ?? null;
+    if (img) withImg++;
+    writeFileSync(join(dir, `${m.idmun}.json`), JSON.stringify(img ? { ...m, img } : m));
     written++;
   }
+  if (Object.keys(images).length > 0) console.log(`  merged img into ${withImg} forecast files`);
   // The count assertion is structural: files written must equal composite-key count.
   if (written !== municipios.size || index.length !== municipios.size) {
     throw new Error(
@@ -97,7 +108,10 @@ function main() {
   }
   const records = JSON.parse(readFileSync(inPath, 'utf8'));
   const parts = partition(records);
-  const meta = writeOutput(outDir, parts, new Date().toISOString());
+  // Optional: the harvested image index, folded into the forecast files.
+  const imagesPath = join(outDir, 'images.json');
+  const images = existsSync(imagesPath) ? JSON.parse(readFileSync(imagesPath, 'utf8')) : {};
+  const meta = writeOutput(outDir, parts, new Date().toISOString(), images);
   console.log(
     `ok: ${meta.municipioCount} municipios (${meta.estadoCount} estados, ${meta.recordCount} day-records) -> ${outDir}`,
   );

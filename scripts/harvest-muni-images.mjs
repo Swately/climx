@@ -2,9 +2,10 @@
 // Subcommands:
 //   plan <planPath>          SPARQL pull + join to (ides,idmun) + choose source per
 //                            municipio -> writes the plan JSON + prints measured counts.
-//   run <planPath>           download originals, convert to WebP 640, write sidecars
-//                            (category + credit) + aggregate credits.json. Resumable:
-//                            skips municipios whose .webp already exists.
+//   run <planPath>           download originals, convert to WebP 640, then write the
+//                            single image index. Resumable: skips municipios whose
+//                            .webp already exists.
+//   index <planPath>         rewrite public/data/images.json alone (no downloads).
 // Sources per municipio, in order: Wikidata P18 -> es-wiki lead image (pageimages).
 // Build-time filters: escudo/flag/map/seal/logo/locator/svg filenames are never used.
 // Wall W1: every output is keyed by the composite (ides, idmun).
@@ -70,7 +71,9 @@ async function plan(planPath) {
     state: b.stLabel?.value ?? '',
     img: b.img ? decodeURIComponent(b.img.value.split('/').pop()).replace(/_/g, ' ') : null,
     cat: b.cat?.value ?? null,
-    article: b.art ? decodeURIComponent(b.art.value.split('/wiki/').pop()).replace(/_/g, ' ') : null,
+    article: b.art
+      ? decodeURIComponent(b.art.value.split('/wiki/').pop()).replace(/_/g, ' ')
+      : null,
   }));
   // Collapse duplicate rows per item (multiple P131/P18 values -> keep first non-null).
   const items = new Map();
@@ -113,7 +116,9 @@ async function plan(planPath) {
     }
   }
   console.log(`joined to (ides,idmun): ${joined.size} / ${index.length}`);
-  console.log(`unjoined wikidata items: ${items.size - joined.size} (ambiguous: ${ambiguous.length})`);
+  console.log(
+    `unjoined wikidata items: ${items.size - joined.size} (ambiguous: ${ambiguous.length})`,
+  );
 
   // Source choice: P18 (filtered) now; article title recorded for the pageimages pass.
   const entries = [];
@@ -280,32 +285,75 @@ async function run(planPath) {
   );
   console.log(`fetching credits for ${converted.length} files...`);
   const credits = await creditsFor(converted.map((e) => e.file));
-  const aggregate = [];
-  for (const e of converted) {
-    const c = credits.get(e.file) ?? { artist: 'desconocido', license: 'ver página del archivo' };
-    const sidecar = {
-      file: e.file,
-      filePage: 'https://commons.wikimedia.org/wiki/File:' + e.file.replace(/ /g, '_'),
-      artist: c.artist,
-      license: c.license,
-      licenseUrl: c.licenseUrl ?? null,
-      cat: e.cat,
-      source: e.source,
-    };
-    const scPath = join('public/data/commons', e.ides, `${e.idmun}.json`);
-    mkdirSync(dirname(scPath), { recursive: true });
-    writeFileSync(scPath, JSON.stringify(sidecar));
-    aggregate.push({ ides: e.ides, idmun: e.idmun, nmun: e.nmun, nes: e.nes, ...sidecar });
+  await writeImageIndex(planPath, credits);
+}
+
+// ---------- image index ----------
+
+/**
+ * Writes ONE image index: `public/data/images.json`, keyed "ides/idmun".
+ *
+ * Design note (the reason this is not a file per municipio): the forecast file
+ * is ALREADY per-municipio and already fetched by the view, so a parallel
+ * per-municipio file duplicates the partition for no gain — it doubles the
+ * requests on the hot path and makes "the file does not exist" a 404 the app
+ * provokes on itself. Instead this single index is the harvest's source of
+ * truth, `partition-data.mjs` folds each entry INTO its forecast file, and the
+ * credits page reads the index directly. Entries exist only for municipios
+ * that actually have something (a photo, a Commons category, or both).
+ */
+async function writeImageIndex(planPath, credits = new Map()) {
+  const { entries } = JSON.parse(readFileSync(planPath, 'utf8'));
+  const index = JSON.parse(readFileSync('public/data/index/all-lite.json', 'utf8'));
+  const planByKey = new Map(entries.map((e) => [`${e.ides}/${e.idmun}`, e]));
+  const prev = existsSync('public/data/images.json')
+    ? JSON.parse(readFileSync('public/data/images.json', 'utf8'))
+    : {};
+
+  const out = {};
+  let withPhoto = 0;
+  let catOnly = 0;
+  for (const [ides, idmun] of index) {
+    const key = `${ides}/${idmun}`;
+    const e = planByKey.get(key);
+    const hasImage = existsSync(join('public/img/municipios', ides, `${idmun}.webp`));
+    const cat = e?.cat ?? prev[key]?.cat ?? null;
+
+    if (hasImage && e?.file) {
+      const c = credits.get(e.file) ??
+        (prev[key]?.artist ? prev[key] : null) ?? {
+          artist: 'desconocido',
+          license: 'ver página del archivo',
+          licenseUrl: null,
+        };
+      out[key] = {
+        file: e.file,
+        filePage: 'https://commons.wikimedia.org/wiki/File:' + e.file.replace(/ /g, '_'),
+        artist: c.artist,
+        license: c.license,
+        licenseUrl: c.licenseUrl ?? null,
+        cat,
+      };
+      withPhoto++;
+    } else if (cat) {
+      // No photo, but a Commons category exists: the live gallery still works.
+      out[key] = { file: null, filePage: null, artist: null, license: null, licenseUrl: null, cat };
+      catOnly++;
+    }
   }
-  writeFileSync('public/data/credits.json', JSON.stringify(aggregate));
-  console.log(`sidecars + credits.json written (${aggregate.length} entries)`);
+  writeFileSync('public/data/images.json', JSON.stringify(out));
+  console.log(
+    `images.json: ${Object.keys(out).length} entries (${withPhoto} with photo, ${catOnly} gallery-only) ` +
+      `of ${index.length} municipios`,
+  );
 }
 
 const [cmd, arg] = process.argv.slice(2);
 if (cmd === 'plan') await plan(arg ?? 'scratch/harvest-plan.json');
 else if (cmd === 'run') await run(arg ?? 'scratch/harvest-plan.json');
+else if (cmd === 'index') await writeImageIndex(arg ?? 'scratch/harvest-plan.json');
 else {
-  console.error('usage: node harvest-muni-images.mjs plan|run <planPath>');
+  console.error('usage: node harvest-muni-images.mjs plan|run|index <planPath>');
   process.exit(2);
 }
 
